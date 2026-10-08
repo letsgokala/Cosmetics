@@ -8,6 +8,13 @@ const schema = z.object({
   API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
   DATABASE_URL: z.string().url().optional(),
+  SESSION_SECRET: z
+    .string()
+    .min(32)
+    .default('local-development-only-glow-secret-change-before-deploy'),
 });
 
 export const env = schema.parse(process.env);
+if (env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production.');
+}

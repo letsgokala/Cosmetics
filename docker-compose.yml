@@ -27,6 +27,7 @@ services:
     environment:
       NODE_ENV: production
       API_PORT: 4000
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-glow}:${POSTGRES_PASSWORD:-glow_dev_password}@db:5432/${POSTGRES_DB:-glow_cosmetics}?schema=public
     depends_on:
