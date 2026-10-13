@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Product } from '@/lib/types';
 import { formatPrice } from '@/lib/store-config';
+import { AddToCartButton } from './add-to-cart-button';
 
 export function ProductCard({
   product,
@@ -40,6 +41,11 @@ export function ProductCard({
           </span>
         </div>
       </Link>
+      <AddToCartButton
+        productId={product.id}
+        available={product.stock > 0}
+        className="mt-3"
+      />
     </article>
   );
 }

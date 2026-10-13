@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ApiError, getProduct } from '@/lib/api';
 import { formatPrice, storeConfig } from '@/lib/store-config';
+import { AddToCartButton } from '@/components/add-to-cart-button';
 
 export const dynamic = 'force-dynamic';
 type Props = { params: Promise<{ slug: string }> };
@@ -77,6 +78,11 @@ export default async function ProductPage({ params }: Props) {
           <p className="mt-3 text-xs text-ink/45">
             Prices shown in {storeConfig.currency.code}.
           </p>
+          <AddToCartButton
+            productId={product.id}
+            available={product.stock > 0}
+            className="mt-8 max-w-xs"
+          />
           <Link
             href="/catalog"
             className="mt-9 self-start rounded-full border border-ink/25 px-6 py-3 text-sm hover:border-rose hover:text-rose"
