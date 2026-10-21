@@ -7,12 +7,14 @@ const orderInclude = {
   items: { orderBy: { createdAt: 'asc' as const } },
 };
 
-function serializeOrder<T extends {
-  subtotal: Prisma.Decimal;
-  deliveryFee: Prisma.Decimal;
-  total: Prisma.Decimal;
-  items: Array<{ unitPrice: Prisma.Decimal; quantity: number }>;
-}>(order: T) {
+function serializeOrder<
+  T extends {
+    subtotal: Prisma.Decimal;
+    deliveryFee: Prisma.Decimal;
+    total: Prisma.Decimal;
+    items: Array<{ unitPrice: Prisma.Decimal; quantity: number }>;
+  },
+>(order: T) {
   return {
     ...order,
     subtotal: order.subtotal.toFixed(2),
@@ -31,6 +33,7 @@ export async function placeOrder(
   input: { phone: string; deliveryAddress: string; deliveryNote?: string },
 ) {
   const order = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "Cart" WHERE "userId" = ${user.id} FOR UPDATE`;
     const cart = await tx.cart.findUnique({
       where: { userId: user.id },
       include: {
@@ -51,18 +54,34 @@ export async function placeOrder(
       },
     });
     if (!cart?.items.length)
-      throw new HttpError(400, 'CART_EMPTY', 'Add something to your cart before checkout.');
+      throw new HttpError(
+        400,
+        'CART_EMPTY',
+        'Add something to your cart before checkout.',
+      );
 
     let subtotal = new Prisma.Decimal(0);
     for (const item of cart.items) {
       if (!item.product.active)
-        throw new HttpError(409, 'PRODUCT_UNAVAILABLE', `${item.product.name} is no longer available.`);
+        throw new HttpError(
+          409,
+          'PRODUCT_UNAVAILABLE',
+          `${item.product.name} is no longer available.`,
+        );
       const stockUpdate = await tx.product.updateMany({
-        where: { id: item.productId, active: true, stock: { gte: item.quantity } },
+        where: {
+          id: item.productId,
+          active: true,
+          stock: { gte: item.quantity },
+        },
         data: { stock: { decrement: item.quantity } },
       });
       if (stockUpdate.count !== 1)
-        throw new HttpError(409, 'INSUFFICIENT_STOCK', `${item.product.name} no longer has enough stock.`);
+        throw new HttpError(
+          409,
+          'INSUFFICIENT_STOCK',
+          `${item.product.name} no longer has enough stock.`,
+        );
       subtotal = subtotal.add(item.product.price.mul(item.quantity));
     }
 
@@ -124,15 +143,24 @@ export async function cancelOrder(userId: string, orderNumber: string) {
       where: { userId, orderNumber },
       include: { items: true },
     });
-    if (!current) throw new HttpError(404, 'ORDER_NOT_FOUND', 'Order not found.');
+    if (!current)
+      throw new HttpError(404, 'ORDER_NOT_FOUND', 'Order not found.');
     if (current.status !== 'pending')
-      throw new HttpError(409, 'ORDER_NOT_CANCELLABLE', 'This order can no longer be cancelled online.');
+      throw new HttpError(
+        409,
+        'ORDER_NOT_CANCELLABLE',
+        'This order can no longer be cancelled online.',
+      );
     const transition = await tx.order.updateMany({
       where: { id: current.id, status: 'pending' },
       data: { status: 'cancelled' },
     });
     if (transition.count !== 1)
-      throw new HttpError(409, 'ORDER_NOT_CANCELLABLE', 'This order can no longer be cancelled online.');
+      throw new HttpError(
+        409,
+        'ORDER_NOT_CANCELLABLE',
+        'This order can no longer be cancelled online.',
+      );
     for (const item of current.items) {
       await tx.product.update({
         where: { id: item.productId },

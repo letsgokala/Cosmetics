@@ -19,6 +19,27 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '32kb' }));
+const allowedOrigins = new Set(
+  env.CORS_ORIGIN.split(',').map((origin) => origin.trim()),
+);
+app.use((req, _res, next) => {
+  const origin = req.get('origin');
+  if (
+    origin &&
+    ['POST', 'PATCH', 'DELETE'].includes(req.method) &&
+    !allowedOrigins.has(origin)
+  ) {
+    next(
+      new HttpError(
+        403,
+        'ORIGIN_NOT_ALLOWED',
+        'This request origin is not allowed.',
+      ),
+    );
+    return;
+  }
+  next();
+});
 app.get('/api/health', (_req, res) => res.json({ data: { status: 'ok' } }));
 app.use('/api/auth', authRouter);
 app.use('/api/cart', cartRouter);
