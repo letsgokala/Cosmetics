@@ -1,8 +1,8 @@
 # Glow Cosmetics
 
-A small cosmetics catalog for an Addis Ababa shop. The repository is an npm-workspaces monorepo with a distinct `frontend/` (Next.js App Router) and `backend/` (Express REST API and Prisma) folder; PostgreSQL stores catalog data. Product data is fictional placeholder content; the site is a catalog and has no checkout, accounts, or order processing.
+A cosmetics shop for Addis Ababa. The repository is an npm-workspaces monorepo with a distinct `frontend/` (Next.js App Router) and `backend/` (Express REST API and Prisma) folder; PostgreSQL stores accounts, carts, products and orders. The homepage introduces the shop, and visitors can browse the catalog without an account. A customer account is required to add items to a bag and order.
 
-Store name, wordmark, currency code and formatting, and placeholder contact details live in `frontend/lib/store-config.ts`.
+Store name, wordmark, currency code and formatting, and placeholder contact details live in `frontend/lib/store-config.ts`. Product catalog content and sample stock are fictional seed data.
 
 ## Quick start with Docker
 
@@ -31,7 +31,7 @@ npm run db:seed
 npm run dev
 ```
 
-The frontend is at <http://localhost:3000> and the API at <http://localhost:4000>. The `dev` command starts both. Set `DATABASE_URL`, `API_PORT`, `CORS_ORIGIN`, and `NEXT_PUBLIC_API_BASE_URL` in `.env` to adjust local configuration. The web API URL is public browser configuration; never put secrets in `NEXT_PUBLIC_*` variables.
+The frontend is at <http://localhost:3000> and the API at <http://localhost:4000>. The `dev` command starts both. Set `DATABASE_URL`, `API_PORT`, `CORS_ORIGIN`, `NEXT_PUBLIC_API_BASE_URL`, and a private `SESSION_SECRET` in `.env` to adjust local configuration. Replace the sample session secret and database password before deployment. The web API URL is public browser configuration; never put secrets in `NEXT_PUBLIC_*` variables.
 
 The split folders are independently runnable npm workspaces: `npm run dev:frontend` starts only the frontend and `npm run dev:backend` starts only the backend. The root scripts handle the database setup and run both together.
 
@@ -51,15 +51,29 @@ Playwright's browser binaries may need to be installed once with `npx playwright
 
 All successful responses use `{ "data": ... }`; paginated responses also include `{ "meta": { "page", "limit", "total", "totalPages" } }`. Errors use `{ "error": { "code", "message" } }`. Invalid input returns `400`, missing records return `404`, and unexpected failures return a generic `500` response (stack details are only logged outside production).
 
-| Method and path              | Behavior                                                                               |
-| ---------------------------- | -------------------------------------------------------------------------------------- |
-| `GET /api/health`            | Process health                                                                         |
-| `GET /api/categories`        | Active categories and active product counts                                            |
-| `GET /api/products`          | Active products; `q`, `category`, `page` (default 1), `limit` (default 12, maximum 50) |
-| `GET /api/products/:slug`    | Active product by slug                                                                 |
-| `GET /api/products/featured` | Active featured products; accepts pagination parameters                                |
+| Method and path                   | Behavior                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------- |
+| `GET /api/health`                 | Process health                                                                         |
+| `GET /api/categories`             | Active categories and active product counts                                            |
+| `GET /api/products`               | Active products; `q`, `category`, `page` (default 1), `limit` (default 12, maximum 50) |
+| `GET /api/products/:slug`         | Active product by slug                                                                 |
+| `GET /api/products/featured`      | Active featured products; accepts pagination parameters                                |
+| `POST /api/auth/signup`           | Register and sign in with an HTTP-only session cookie                                  |
+| `POST /api/auth/signin`           | Sign in                                                                                |
+| `POST /api/auth/signout`          | Clear the session cookie                                                               |
+| `GET /api/auth/me`                | Current signed-in account                                                              |
+| `GET /api/cart`                   | Current account's bag                                                                  |
+| `POST /api/cart/items`            | Add an in-stock product to the bag                                                     |
+| `PATCH /api/cart/items/:id`       | Change a bag quantity                                                                  |
+| `DELETE /api/cart/items/:id`      | Remove an item from the bag                                                            |
+| `POST /api/orders`                | Place a cash-on-delivery order from the current bag                                    |
+| `GET /api/orders`                 | Current account's order history                                                        |
+| `GET /api/orders/:number`         | Order details owned by the current account                                             |
+| `POST /api/orders/:number/cancel` | Cancel an order that is still pending                                                  |
 
 Prices are stored in PostgreSQL `DECIMAL(12,2)` and serialized as decimal strings. API filtering uses Prisma parameterized queries. CORS is controlled by `CORS_ORIGIN` (comma-separated origins).
+
+Account passwords are stored as scrypt hashes. Sessions are HMAC-signed, HTTP-only cookies that expire after seven days. Order placement reserves stock in a database transaction and records a price and product-name snapshot. Checkout currently supports cash on delivery; no online payment provider is configured. The delivery fee is currently seeded as zero and should be updated to the shop's actual delivery policy before public launch.
 
 ## Database changes
 
