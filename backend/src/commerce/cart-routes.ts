@@ -19,14 +19,12 @@ const quantitySchema = z.object({
 
 export const cartRouter = Router();
 cartRouter.use(requireUser);
-cartRouter.get('/', async (req, res) =>
-  res.json(await getCart(req.user!.id)),
-);
+cartRouter.get('/', async (req, res) => res.json(await getCart(req.user!.id)));
 cartRouter.post('/items', async (req, res) => {
   const input = addItemSchema.parse(req.body);
-  res.status(201).json(
-    await addCartItem(req.user!.id, input.productId, input.quantity),
-  );
+  res
+    .status(201)
+    .json(await addCartItem(req.user!.id, input.productId, input.quantity));
 });
 cartRouter.patch('/items/:productId', async (req, res) => {
   const productId = productIdSchema.parse(req.params.productId);

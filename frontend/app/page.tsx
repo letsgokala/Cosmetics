@@ -40,7 +40,10 @@ export default function HomePage() {
               href="/catalog"
               className="inline-flex rounded-full bg-ink px-7 py-3.5 text-sm text-cream transition-colors hover:bg-rose"
             >
-              Shop the collection <span aria-hidden="true" className="ml-3">↗</span>
+              Shop the collection{' '}
+              <span aria-hidden="true" className="ml-3">
+                ↗
+              </span>
             </Link>
             <a
               href="#our-story"
@@ -87,14 +90,17 @@ export default function HomePage() {
             <p>
               From a morning face cream to a fragrance you save for yourself,
               every product is an invitation to make a small moment your own.
-              Discover the edit online or get in touch with our Addis Ababa
-              team for a hand finding your next favorite.
+              Discover the edit online or get in touch with our Addis Ababa team
+              for a hand finding your next favorite.
             </p>
             <Link
               href="/catalog"
               className="inline-flex rounded-full border border-ink/20 px-6 py-3 text-sm text-ink transition-colors hover:border-rose hover:text-rose"
             >
-              Visit the shop <span aria-hidden="true" className="ml-3">↗</span>
+              Visit the shop{' '}
+              <span aria-hidden="true" className="ml-3">
+                ↗
+              </span>
             </Link>
           </div>
         </div>

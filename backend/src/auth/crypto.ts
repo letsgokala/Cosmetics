@@ -40,7 +40,10 @@ function sign(payload: string) {
 
 export function createSession(user: SessionUser) {
   const payload = Buffer.from(
-    JSON.stringify({ ...user, exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS }),
+    JSON.stringify({
+      ...user,
+      exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
+    }),
   ).toString('base64url');
   return `${payload}.${sign(payload)}`;
 }
@@ -56,10 +59,12 @@ export function readSession(token: string): SessionUser | null {
   )
     return null;
   try {
-    const session = JSON.parse(Buffer.from(payload, 'base64url').toString()) as
-      SessionUser & { exp?: number };
+    const session = JSON.parse(
+      Buffer.from(payload, 'base64url').toString(),
+    ) as SessionUser & { exp?: number };
     if (!session.id || !session.email || !session.name) return null;
-    if (!session.exp || session.exp <= Math.floor(Date.now() / 1000)) return null;
+    if (!session.exp || session.exp <= Math.floor(Date.now() / 1000))
+      return null;
     return { id: session.id, name: session.name, email: session.email };
   } catch {
     return null;

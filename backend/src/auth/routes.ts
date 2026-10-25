@@ -13,11 +13,21 @@ import {
 
 const signUpSchema = z.object({
   name: z.string().trim().min(2).max(80),
-  email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+  email: z
+    .string()
+    .trim()
+    .email()
+    .max(254)
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(8).max(128),
 });
 const signInSchema = z.object({
-  email: z.string().trim().email().max(254).transform((value) => value.toLowerCase()),
+  email: z
+    .string()
+    .trim()
+    .email()
+    .max(254)
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(8).max(128),
 });
 const publicUser = (user: { id: string; name: string; email: string }) => ({
@@ -30,11 +40,13 @@ export const authRouter = Router();
 
 authRouter.post('/signup', async (req, res) => {
   const input = signUpSchema.parse(req.body);
-  const passwordHash = await hashPassword(input.password);
+  const { name, email, password } = input;
+  const passwordHash = await hashPassword(password);
   try {
     const user = await prisma.user.create({
       data: {
-        ...input,
+        name,
+        email,
         passwordHash,
         cart: { create: {} },
       },
@@ -49,7 +61,11 @@ authRouter.post('/signup', async (req, res) => {
       'code' in error &&
       error.code === 'P2002'
     ) {
-      throw new HttpError(409, 'EMAIL_IN_USE', 'An account with this email already exists.');
+      throw new HttpError(
+        409,
+        'EMAIL_IN_USE',
+        'An account with this email already exists.',
+      );
     }
     throw error;
   }
@@ -59,7 +75,11 @@ authRouter.post('/signin', async (req, res) => {
   const input = signInSchema.parse(req.body);
   const user = await prisma.user.findUnique({ where: { email: input.email } });
   if (!user || !(await verifyPassword(input.password, user.passwordHash)))
-    throw new HttpError(401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.');
+    throw new HttpError(
+      401,
+      'INVALID_CREDENTIALS',
+      'Email or password is incorrect.',
+    );
   const account = publicUser(user);
   res.cookie(COOKIE_NAME, createSession(account), sessionCookieOptions());
   res.json({ data: { user: account } });

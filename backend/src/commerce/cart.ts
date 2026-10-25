@@ -2,14 +2,6 @@ import { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../db.js';
 import { HttpError } from '../middleware/errors.js';
 
-async function getOrCreateCart(userId: string) {
-  return prisma.cart.upsert({
-    where: { userId },
-    update: {},
-    create: { userId },
-  });
-}
-
 export async function getCart(userId: string) {
   const cart = await prisma.cart.findUnique({
     where: { userId },
@@ -67,7 +59,11 @@ export async function addCartItem(
       select: { id: true, stock: true },
     });
     if (!product)
-      throw new HttpError(404, 'PRODUCT_NOT_FOUND', 'This product is not available.');
+      throw new HttpError(
+        404,
+        'PRODUCT_NOT_FOUND',
+        'This product is not available.',
+      );
     const cart = await tx.cart.upsert({
       where: { userId },
       update: {},
@@ -80,7 +76,11 @@ export async function addCartItem(
     });
     const nextQuantity = (existing?.quantity ?? 0) + quantity;
     if (nextQuantity > product.stock)
-      throw new HttpError(409, 'INSUFFICIENT_STOCK', 'There are not enough items in stock.');
+      throw new HttpError(
+        409,
+        'INSUFFICIENT_STOCK',
+        'There are not enough items in stock.',
+      );
     await tx.cartItem.upsert({
       where: { cartId_productId: { cartId: cart.id, productId } },
       update: { quantity: { increment: quantity } },
@@ -100,15 +100,27 @@ export async function setCartItemQuantity(
     select: { stock: true },
   });
   if (!product)
-    throw new HttpError(404, 'PRODUCT_NOT_FOUND', 'This product is not available.');
+    throw new HttpError(
+      404,
+      'PRODUCT_NOT_FOUND',
+      'This product is not available.',
+    );
   if (quantity > product.stock)
-    throw new HttpError(409, 'INSUFFICIENT_STOCK', 'There are not enough items in stock.');
+    throw new HttpError(
+      409,
+      'INSUFFICIENT_STOCK',
+      'There are not enough items in stock.',
+    );
   const result = await prisma.cartItem.updateMany({
     where: { productId, cart: { userId } },
     data: { quantity },
   });
   if (result.count === 0)
-    throw new HttpError(404, 'CART_ITEM_NOT_FOUND', 'This item is not in your cart.');
+    throw new HttpError(
+      404,
+      'CART_ITEM_NOT_FOUND',
+      'This item is not in your cart.',
+    );
   return getCart(userId);
 }
 
@@ -117,6 +129,10 @@ export async function removeCartItem(userId: string, productId: string) {
     where: { productId, cart: { userId } },
   });
   if (result.count === 0)
-    throw new HttpError(404, 'CART_ITEM_NOT_FOUND', 'This item is not in your cart.');
+    throw new HttpError(
+      404,
+      'CART_ITEM_NOT_FOUND',
+      'This item is not in your cart.',
+    );
   return getCart(userId);
 }

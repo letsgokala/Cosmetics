@@ -5,7 +5,12 @@ import { cancelOrder, getOrder, listOrders, placeOrder } from './orders.js';
 
 const orderNumberSchema = z.string().regex(/^GLOW-\d{8}-[A-F0-9]{6}$/);
 const checkoutSchema = z.object({
-  phone: z.string().trim().min(7).max(32).regex(/^\+?[0-9][0-9\s().-]{5,30}$/),
+  phone: z
+    .string()
+    .trim()
+    .min(7)
+    .max(32)
+    .regex(/^\+?[0-9][0-9\s().-]{5,30}$/),
   deliveryAddress: z.string().trim().min(10).max(500),
   deliveryNote: z.string().trim().max(500).optional(),
 });
