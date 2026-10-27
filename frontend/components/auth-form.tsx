@@ -32,16 +32,27 @@ export function AuthForm({
       let destination = nextPath;
       const pendingItem = sessionStorage.getItem('glow_pending_cart_item');
       if (pendingItem) {
-        const item = JSON.parse(pendingItem) as {
-          productId: string;
-          quantity: number;
-        };
-        await addCartItem(item.productId, item.quantity);
-        sessionStorage.removeItem('glow_pending_cart_item');
-        destination = '/cart';
+        try {
+          const item = JSON.parse(pendingItem) as {
+            productId?: unknown;
+            quantity?: unknown;
+          };
+          if (
+            typeof item.productId === 'string' &&
+            typeof item.quantity === 'number'
+          ) {
+            await addCartItem(item.productId, item.quantity);
+            sessionStorage.removeItem('glow_pending_cart_item');
+            destination = '/cart';
+          } else {
+            sessionStorage.removeItem('glow_pending_cart_item');
+          }
+        } catch {
+          sessionStorage.removeItem('glow_pending_cart_item');
+        }
       }
       window.dispatchEvent(new Event('glow-auth-changed'));
-      router.replace(destination);
+      router.push(destination);
       router.refresh();
     } catch (requestError) {
       setError(
