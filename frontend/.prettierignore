@@ -1,0 +1,6 @@
+backend/src/generated
+frontend/.next
+frontend/next-env.d.ts
+coverage
+playwright-report
+test-results

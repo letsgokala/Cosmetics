@@ -7,6 +7,7 @@ const schema = z.object({
     .default('development'),
   API_PORT: z.coerce.number().int().min(1).max(65535).default(4000),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+  PUBLIC_API_URL: z.string().url().default('http://localhost:4000/api'),
   DATABASE_URL: z.string().url().optional(),
   SESSION_SECRET: z
     .string()

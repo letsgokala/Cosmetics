@@ -1,0 +1,239 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Glow Cosmetics API",
+    "version": "1.0.0",
+    "description": "Catalog, customer accounts, shopping bags, and cash-on-delivery orders for Glow Cosmetics. Authenticated endpoints use the HTTP-only glow_session cookie."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000/api",
+      "description": "Local backend"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "Service health" },
+    { "name": "Catalog", "description": "Public catalog browsing" },
+    { "name": "Authentication", "description": "Customer accounts and sessions" },
+    { "name": "Cart", "description": "Signed-in customer's shopping bag" },
+    { "name": "Orders", "description": "Checkout and order history" }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Check backend health",
+        "responses": {
+          "200": {
+            "description": "Backend is responding",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/HealthResponse" } } }
+          }
+        }
+      }
+    },
+    "/categories": {
+      "get": {
+        "tags": ["Catalog"],
+        "summary": "List active product categories",
+        "responses": {
+          "200": {
+            "description": "Category list",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CategoriesResponse" } } }
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": ["Catalog"],
+        "summary": "Search and list active products",
+        "parameters": [
+          { "name": "q", "in": "query", "schema": { "type": "string", "maxLength": 100 } },
+          { "name": "category", "in": "query", "schema": { "type": "string" } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 12 } }
+        ],
+        "responses": {
+          "200": { "description": "Paginated products", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductsResponse" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/products/featured": {
+      "get": {
+        "tags": ["Catalog"],
+        "summary": "List featured active products",
+        "parameters": [
+          { "name": "page", "in": "query", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 12 } }
+        ],
+        "responses": { "200": { "description": "Featured products", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ProductsResponse" } } } } }
+      }
+    },
+    "/products/{slug}": {
+      "get": {
+        "tags": ["Catalog"],
+        "summary": "Get a product by slug",
+        "parameters": [{ "$ref": "#/components/parameters/Slug" }],
+        "responses": {
+          "200": { "description": "Product", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Product" } }, "required": ["data"] } } } },
+          "404": { "$ref": "#/components/responses/NotFound" }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Create an account and sign in",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SignUpInput" } } } },
+        "responses": {
+          "201": { "description": "Account created; sets the glow_session cookie", "headers": { "Set-Cookie": { "schema": { "type": "string" }, "description": "HTTP-only session cookie" } }, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AccountResponse" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "409": { "description": "Email is already registered", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/auth/signin": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Sign in",
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SignInInput" } } } },
+        "responses": {
+          "200": { "description": "Signed in; sets the glow_session cookie", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AccountResponse" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "description": "Invalid email or password", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/auth/signout": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Sign out and clear the session cookie",
+        "responses": { "200": { "description": "Signed out" } }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication"],
+        "summary": "Get the current account",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": { "description": "Current account", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AccountResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/cart": {
+      "get": {
+        "tags": ["Cart"],
+        "summary": "Get the signed-in customer's bag",
+        "security": [{ "sessionCookie": [] }],
+        "responses": {
+          "200": { "description": "Shopping bag", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CartResponse" } } } },
+          "401": { "$ref": "#/components/responses/Unauthorized" }
+        }
+      }
+    },
+    "/cart/items": {
+      "post": {
+        "tags": ["Cart"],
+        "summary": "Add an in-stock product to the bag",
+        "security": [{ "sessionCookie": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AddCartItemInput" } } } },
+        "responses": {
+          "201": { "description": "Updated shopping bag", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CartResponse" } } } },
+          "400": { "$ref": "#/components/responses/ValidationError" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "description": "Insufficient stock", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+        }
+      }
+    },
+    "/cart/items/{productId}": {
+      "patch": {
+        "tags": ["Cart"],
+        "summary": "Change an item quantity",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/ProductId" }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SetCartQuantityInput" } } } },
+        "responses": { "200": { "description": "Updated shopping bag", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CartResponse" } } } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" }, "409": { "description": "Insufficient stock" } }
+      },
+      "delete": {
+        "tags": ["Cart"],
+        "summary": "Remove an item from the bag",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/ProductId" }],
+        "responses": { "200": { "description": "Updated shopping bag", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CartResponse" } } } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+    "/orders": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "List the signed-in customer's orders",
+        "security": [{ "sessionCookie": [] }],
+        "responses": { "200": { "description": "Order history", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Order" } } }, "required": ["data"] } } } }, "401": { "$ref": "#/components/responses/Unauthorized" } }
+      },
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Place a cash-on-delivery order from the bag",
+        "security": [{ "sessionCookie": [] }],
+        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/CheckoutInput" } } } },
+        "responses": { "201": { "description": "Order placed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderResponse" } } } }, "400": { "$ref": "#/components/responses/ValidationError" }, "401": { "$ref": "#/components/responses/Unauthorized" }, "409": { "description": "Stock changed; review the bag" } }
+      }
+    },
+    "/orders/{orderNumber}": {
+      "get": {
+        "tags": ["Orders"],
+        "summary": "Get an order belonging to the signed-in customer",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/OrderNumber" }],
+        "responses": { "200": { "description": "Order details", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderResponse" } } } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" } }
+      }
+    },
+    "/orders/{orderNumber}/cancel": {
+      "post": {
+        "tags": ["Orders"],
+        "summary": "Cancel an order while its status is pending",
+        "security": [{ "sessionCookie": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/OrderNumber" }],
+        "responses": { "200": { "description": "Cancelled order", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/OrderResponse" } } } }, "401": { "$ref": "#/components/responses/Unauthorized" }, "404": { "$ref": "#/components/responses/NotFound" }, "409": { "description": "Order is no longer cancellable" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": { "type": "apiKey", "in": "cookie", "name": "glow_session", "description": "HTTP-only cookie set by POST /auth/signin or POST /auth/signup." }
+    },
+    "parameters": {
+      "Slug": { "name": "slug", "in": "path", "required": true, "schema": { "type": "string" } },
+      "ProductId": { "name": "productId", "in": "path", "required": true, "schema": { "type": "string" } },
+      "OrderNumber": { "name": "orderNumber", "in": "path", "required": true, "schema": { "type": "string", "pattern": "^GLOW-[0-9]{8}-[A-F0-9]{6}$" } }
+    },
+    "responses": {
+      "ValidationError": { "description": "Request validation failed", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+      "Unauthorized": { "description": "Sign in is required", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } },
+      "NotFound": { "description": "Resource not found", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorResponse" } } } }
+    },
+    "schemas": {
+      "HealthResponse": { "type": "object", "properties": { "data": { "type": "object", "properties": { "status": { "type": "string", "const": "ok" } }, "required": ["status"] } }, "required": ["data"] },
+      "ErrorResponse": { "type": "object", "properties": { "error": { "type": "object", "properties": { "code": { "type": "string" }, "message": { "type": "string" } }, "required": ["code", "message"] } }, "required": ["error"] },
+      "Account": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "email": { "type": "string", "format": "email" } }, "required": ["id", "name", "email"] },
+      "AccountResponse": { "type": "object", "properties": { "data": { "type": "object", "properties": { "user": { "$ref": "#/components/schemas/Account" } }, "required": ["user"] } }, "required": ["data"] },
+      "SignUpInput": { "type": "object", "properties": { "name": { "type": "string", "minLength": 2, "maxLength": 80 }, "email": { "type": "string", "format": "email", "maxLength": 254 }, "password": { "type": "string", "minLength": 8, "maxLength": 128 } }, "required": ["name", "email", "password"] },
+      "SignInInput": { "type": "object", "properties": { "email": { "type": "string", "format": "email", "maxLength": 254 }, "password": { "type": "string", "minLength": 8, "maxLength": 128 } }, "required": ["email", "password"] },
+      "Category": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "slug": { "type": "string" }, "description": { "type": ["string", "null"] }, "productCount": { "type": "integer" } }, "required": ["id", "name", "slug", "productCount"] },
+      "CategoriesResponse": { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Category" } } }, "required": ["data"] },
+      "Product": { "type": "object", "properties": { "id": { "type": "string" }, "name": { "type": "string" }, "slug": { "type": "string" }, "description": { "type": "string" }, "price": { "type": "string", "pattern": "^[0-9]+\\.[0-9]{2}$" }, "imageUrl": { "type": "string" }, "stock": { "type": "integer" }, "featured": { "type": "boolean" }, "category": { "type": "object", "properties": { "name": { "type": "string" }, "slug": { "type": "string" } }, "required": ["name", "slug"] } }, "required": ["id", "name", "slug", "description", "price", "imageUrl", "stock", "featured", "category"] },
+      "ProductsResponse": { "type": "object", "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/Product" } }, "meta": { "type": "object", "properties": { "page": { "type": "integer" }, "limit": { "type": "integer" }, "total": { "type": "integer" }, "totalPages": { "type": "integer" } }, "required": ["page", "limit", "total", "totalPages"] } }, "required": ["data", "meta"] },
+      "CartItemInput": { "type": "object", "properties": { "productId": { "type": "string" }, "quantity": { "type": "integer", "minimum": 1, "maximum": 20 } }, "required": ["productId"] },
+      "AddCartItemInput": { "$ref": "#/components/schemas/CartItemInput" },
+      "SetCartQuantityInput": { "type": "object", "properties": { "quantity": { "type": "integer", "minimum": 1, "maximum": 20 } }, "required": ["quantity"] },
+      "CartItem": { "type": "object", "properties": { "productId": { "type": "string" }, "name": { "type": "string" }, "slug": { "type": "string" }, "imageUrl": { "type": "string" }, "price": { "type": "string" }, "quantity": { "type": "integer" }, "stock": { "type": "integer" }, "active": { "type": "boolean" }, "lineTotal": { "type": "string" } }, "required": ["productId", "name", "slug", "imageUrl", "price", "quantity", "stock", "active", "lineTotal"] },
+      "CartResponse": { "type": "object", "properties": { "data": { "type": "object", "properties": { "items": { "type": "array", "items": { "$ref": "#/components/schemas/CartItem" } }, "itemCount": { "type": "integer" }, "subtotal": { "type": "string" } }, "required": ["items", "itemCount", "subtotal"] } }, "required": ["data"] },
+      "CheckoutInput": { "type": "object", "properties": { "phone": { "type": "string", "minLength": 7, "maxLength": 32 }, "deliveryAddress": { "type": "string", "minLength": 10, "maxLength": 500 }, "deliveryNote": { "type": "string", "maxLength": 500 } }, "required": ["phone", "deliveryAddress"] },
+      "OrderItem": { "type": "object", "properties": { "id": { "type": "string" }, "productId": { "type": "string" }, "productName": { "type": "string" }, "productImage": { "type": "string" }, "unitPrice": { "type": "string" }, "quantity": { "type": "integer" }, "lineTotal": { "type": "string" } }, "required": ["id", "productId", "productName", "productImage", "unitPrice", "quantity", "lineTotal"] },
+      "Order": { "type": "object", "properties": { "id": { "type": "string" }, "orderNumber": { "type": "string" }, "status": { "type": "string", "enum": ["pending", "confirmed", "preparing", "shipped", "delivered", "cancelled"] }, "paymentMethod": { "type": "string", "const": "cash_on_delivery" }, "paymentStatus": { "type": "string", "const": "pending" }, "customerName": { "type": "string" }, "customerEmail": { "type": "string", "format": "email" }, "phone": { "type": "string" }, "deliveryAddress": { "type": "string" }, "deliveryNote": { "type": ["string", "null"] }, "subtotal": { "type": "string" }, "deliveryFee": { "type": "string" }, "total": { "type": "string" }, "createdAt": { "type": "string", "format": "date-time" }, "items": { "type": "array", "items": { "$ref": "#/components/schemas/OrderItem" } } }, "required": ["id", "orderNumber", "status", "paymentMethod", "paymentStatus", "customerName", "customerEmail", "phone", "deliveryAddress", "subtotal", "deliveryFee", "total", "createdAt", "items"] },
+      "OrderResponse": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/Order" } }, "required": ["data"] }
+    }
+  }
+}

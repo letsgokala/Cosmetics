@@ -8,6 +8,16 @@ import { HttpError } from './middleware/errors.js';
 import { authRouter } from './auth/routes.js';
 import { cartRouter } from './commerce/cart-routes.js';
 import { ordersRouter } from './commerce/order-routes.js';
+import swaggerUi from 'swagger-ui-express';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
+const openApiDocument = JSON.parse(
+  readFileSync(resolve(process.cwd(), 'openapi.json'), 'utf8'),
+);
+openApiDocument.servers = [
+  { url: env.PUBLIC_API_URL, description: 'Configured API base URL' },
+];
 
 export const app = express();
 app.disable('x-powered-by');
@@ -19,6 +29,15 @@ app.use(
   }),
 );
 app.use(express.json({ limit: '32kb' }));
+app.get('/api/openapi.json', (_req, res) => res.json(openApiDocument));
+app.use(
+  '/api/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(openApiDocument, {
+    customSiteTitle: 'Glow Cosmetics API',
+    swaggerOptions: { withCredentials: true, persistAuthorization: true },
+  }),
+);
 const allowedOrigins = new Set(
   env.CORS_ORIGIN.split(',').map((origin) => origin.trim()),
 );
