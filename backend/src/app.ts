@@ -12,6 +12,7 @@ import { ordersRouter } from './commerce/order-routes.js';
 import swaggerUi from 'swagger-ui-express';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { normalizeBackendPrefix } from './middleware/backend-prefix.js';
 
 const openApiDocument = JSON.parse(
   readFileSync(resolve(process.cwd(), 'openapi.json'), 'utf8'),
@@ -22,6 +23,7 @@ openApiDocument.servers = [
 
 export const app = express();
 app.disable('x-powered-by');
+app.use(normalizeBackendPrefix);
 app.use(requestLogger);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(

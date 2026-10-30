@@ -19,6 +19,12 @@ describe('API', () => {
     expect(response.body.data.status).toBe('ok');
   });
 
+  it('serves the health endpoint through the AletCloud backend prefix', async () => {
+    const response = await request(app).get('/backend/api/health');
+    expect(response.status).toBe(200);
+    expect(response.body.data.status).toBe('ok');
+  });
+
   it('rejects malformed product slugs', async () => {
     const response = await request(app).get('/api/products/Not%20A%20Slug');
     expect(response.status).toBe(400);
