@@ -38,7 +38,7 @@ app.use(
   '/api/docs',
   swaggerUi.serve,
   swaggerUi.setup(openApiDocument, {
-    customSiteTitle: 'Glow Cosmetics API',
+    customSiteTitle: 'Sahle Cosmetics API',
     swaggerOptions: { withCredentials: true, persistAuthorization: true },
   }),
 );

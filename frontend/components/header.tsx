@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { getCart, getCurrentAccount, signOut } from '@/lib/api';
 import type { Account } from '@/lib/types';
 import { storeConfig } from '@/lib/store-config';
 
 export function Header() {
+  const pathname = usePathname();
   const [account, setAccount] = useState<Account | null>(null);
   const [cartCount, setCartCount] = useState(0);
 
@@ -43,6 +45,14 @@ export function Header() {
     window.dispatchEvent(new Event('glow-auth-changed'));
   }
 
+  function navClass(active: boolean) {
+    return `relative py-2 transition-colors hover:text-rose ${
+      active
+        ? 'text-rose after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-rose'
+        : ''
+    }`;
+  }
+
   return (
     <header className="border-b border-ink/10 bg-cream">
       <div className="page-wrap flex h-[76px] items-center justify-between">
@@ -57,15 +67,45 @@ export function Header() {
           aria-label="Main navigation"
           className="flex items-center gap-3 text-xs sm:gap-7 sm:text-sm"
         >
-          <Link href="/catalog" className="hover:text-rose">
+          <Link
+            href="/catalog"
+            className={navClass(
+              pathname === '/catalog' || pathname.startsWith('/products/'),
+            )}
+            aria-current={
+              pathname === '/catalog' || pathname.startsWith('/products/')
+                ? 'page'
+                : undefined
+            }
+          >
             Shop
           </Link>
-          <Link href="/cart" className="hover:text-rose">
+          <Link
+            href="/cart"
+            className={navClass(
+              pathname === '/cart' || pathname === '/checkout',
+            )}
+            aria-current={
+              pathname === '/cart' || pathname === '/checkout'
+                ? 'page'
+                : undefined
+            }
+          >
             Bag{cartCount > 0 ? ` (${cartCount})` : ''}
           </Link>
           {account ? (
             <>
-              <Link href="/account" className="hover:text-rose">
+              <Link
+                href="/account"
+                className={navClass(
+                  pathname === '/account' || pathname.startsWith('/orders/'),
+                )}
+                aria-current={
+                  pathname === '/account' || pathname.startsWith('/orders/')
+                    ? 'page'
+                    : undefined
+                }
+              >
                 <span className="sm:hidden">Me</span>
                 <span className="hidden sm:inline">My account</span>
               </Link>

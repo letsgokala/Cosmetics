@@ -28,10 +28,10 @@ export default function HomePage() {
             Thoughtful beauty, close to home
           </p>
           <h1 className="font-display mt-5 max-w-[560px] text-[50px] leading-[1.04] tracking-[-.04em] sm:text-[68px]">
-            A softer kind of <span className="text-rose">glow.</span>
+            A softer kind of <span className="text-rose">beauty.</span>
           </h1>
           <p className="mt-6 max-w-md text-[15px] leading-7 text-ink/65">
-            Glow Cosmetics is an independent beauty shop in Addis Ababa. We
+            Sahle Cosmetics is an independent beauty shop in Addis Ababa. We
             bring together the skincare, color and little luxuries that make
             everyday care feel like your own.
           </p>
@@ -83,7 +83,7 @@ export default function HomePage() {
           </div>
           <div className="max-w-2xl space-y-5 text-sm leading-7 text-ink/65">
             <p>
-              We started Glow with a simple thought: choosing beauty should feel
+              We started Sahle with a simple thought: choosing beauty should feel
               easy, personal and a little joyful. So we bring together everyday
               essentials and special finds in one calm, welcoming place.
             </p>

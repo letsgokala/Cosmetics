@@ -168,7 +168,7 @@ async function main() {
       },
     });
   }
-  console.info('Seeded placeholder Glow Cosmetics categories and products.');
+  console.info('Seeded placeholder Sahle Cosmetics categories and products.');
 }
 
 main().finally(async () => prisma.$disconnect());

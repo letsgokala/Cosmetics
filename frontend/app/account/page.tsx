@@ -36,7 +36,7 @@ export default function AccountPage() {
   return (
     <section className="page-wrap min-h-[65vh] py-10 sm:py-14">
       <p className="text-[10px] uppercase tracking-[.2em] text-rose">
-        Your Glow account
+        Your Sahle account
       </p>
       <h1 className="font-display mt-2 text-4xl sm:text-5xl">
         Hello, {account.name.split(' ')[0]}.

@@ -7,7 +7,7 @@ import { storeConfig } from '@/lib/store-config';
 export const metadata: Metadata = {
   title: {
     default: `${storeConfig.name} | Thoughtful beauty essentials`,
-    template: '%s | Glow Cosmetics',
+    template: '%s | Sahle Cosmetics',
   },
   description: `Discover skincare, makeup, haircare and fragrance at ${storeConfig.name} in Addis Ababa.`,
 };

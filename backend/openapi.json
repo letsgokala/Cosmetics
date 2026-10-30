@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Glow Cosmetics API",
+    "title": "Sahle Cosmetics API",
     "version": "1.0.0",
-    "description": "Catalog, customer accounts, shopping bags, and cash-on-delivery orders for Glow Cosmetics. Authenticated endpoints use the HTTP-only glow_session cookie."
+    "description": "Catalog, customer accounts, shopping bags, and cash-on-delivery orders for Sahle Cosmetics. Authenticated endpoints use the HTTP-only glow_session cookie."
   },
   "servers": [
     {

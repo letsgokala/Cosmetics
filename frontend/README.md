@@ -1,4 +1,4 @@
-# Glow Cosmetics Frontend
+# Sahle Cosmetics Frontend
 
 Standalone Next.js storefront. This folder can be installed, developed, built, containerized, and deployed separately from `backend/`.
 

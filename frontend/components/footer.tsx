@@ -25,7 +25,7 @@ export function Footer() {
           </p>
         </div>
         <div className="border-t border-cream/15 pt-5 text-xs text-cream/45 sm:col-span-2">
-          © {new Date().getFullYear()} Glow Cosmetics · Sample catalog
+          © {new Date().getFullYear()} Sahle Cosmetics · Sample catalog
         </div>
       </div>
     </footer>

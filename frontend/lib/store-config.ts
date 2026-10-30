@@ -1,6 +1,6 @@
 export const storeConfig = {
-  name: 'Glow Cosmetics',
-  wordmark: 'glow',
+  name: 'Sahle Cosmetics',
+  wordmark: 'sahle',
   currency: { code: 'ETB', locale: 'en-ET' },
   contact: {
     email: 'hello@glowcosmetics.example',

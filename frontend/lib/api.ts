@@ -1,12 +1,17 @@
 import type { Category, Product, ProductResponse } from './types';
 import type { Account, Cart, StoreOrder } from './types';
 
+const productionApiTarget =
+  process.env.API_PROXY_TARGET ??
+  'https://cosmeticsbackend.app.aletcloud.com/backend/api';
+const configuredApiBase =
+  process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
 const apiBase =
   typeof window === 'undefined'
-    ? (process.env.API_BASE_URL ??
-      process.env.NEXT_PUBLIC_API_BASE_URL ??
-      'http://localhost:4000/api')
-    : (process.env.NEXT_PUBLIC_API_BASE_URL ??
+    ? configuredApiBase?.startsWith('/')
+      ? productionApiTarget
+      : (configuredApiBase ?? 'http://localhost:4000/api')
+    : (configuredApiBase ??
       (window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1'
         ? 'http://localhost:4000/api'

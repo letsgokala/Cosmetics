@@ -1,4 +1,4 @@
-# Glow Cosmetics Backend
+# Sahle Cosmetics Backend
 
 Standalone Express API and PostgreSQL service. The API source, Prisma schema, migrations, and Swagger/OpenAPI docs live in this folder; it does not depend on the frontend project.
 

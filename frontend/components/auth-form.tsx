@@ -122,7 +122,7 @@ export function AuthForm({
         {pending ? 'Please wait…' : isSignUp ? 'Create account' : 'Sign in'}
       </button>
       <p className="text-center text-sm text-ink/60">
-        {isSignUp ? 'Already have an account?' : 'New to Glow?'}{' '}
+        {isSignUp ? 'Already have an account?' : 'New to Sahle?'}{' '}
         <Link
           href={`/${isSignUp ? 'signin' : 'signup'}?next=${encodeURIComponent(nextPath)}`}
           className="text-rose underline underline-offset-4"
