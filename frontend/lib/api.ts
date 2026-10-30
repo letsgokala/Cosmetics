@@ -6,7 +6,11 @@ const apiBase =
     ? (process.env.API_BASE_URL ??
       process.env.NEXT_PUBLIC_API_BASE_URL ??
       'http://localhost:4000/api')
-    : (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000/api');
+    : (process.env.NEXT_PUBLIC_API_BASE_URL ??
+      (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:4000/api'
+        : '/backend-api'));
 
 function logRequest(
   phase: 'start' | 'success' | 'error',

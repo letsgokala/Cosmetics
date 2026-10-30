@@ -23,6 +23,11 @@ The storefront opens at <http://localhost:3000>. Frontend-only commands are `npm
 
 The frontend sends browser requests directly to `NEXT_PUBLIC_API_BASE_URL`. For a hosted frontend, configure the backend's `CORS_ORIGIN` to that frontend origin.
 
+The production frontend can use the same-origin `/backend-api` proxy configured in
+`next.config.ts`. This keeps the session cookie on the frontend origin and avoids
+browser third-party-cookie restrictions. Set `API_PROXY_TARGET` to the backend
+API base when deploying the frontend, or use the checked-in AletCloud default.
+
 ## Docker
 
 Build the frontend independently:
