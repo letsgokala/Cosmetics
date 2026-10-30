@@ -21,6 +21,13 @@ const schema = z.object({
 });
 
 export const env = schema.parse(process.env);
-if (env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-  throw new Error('SESSION_SECRET must be set in production.');
+if (env.NODE_ENV === 'production') {
+  if (!process.env.SESSION_SECRET) {
+    throw new Error('SESSION_SECRET must be set in production.');
+  }
+  if (!env.DATABASE_URL) {
+    throw new Error(
+      'DATABASE_URL must be set in production; do not use the local database fallback.',
+    );
+  }
 }

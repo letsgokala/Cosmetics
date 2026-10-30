@@ -8,6 +8,18 @@ const apiBase =
       'http://localhost:4000/api')
     : (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:4000/api');
 
+function logRequest(
+  phase: 'start' | 'success' | 'error',
+  method: string,
+  path: string,
+  details: Record<string, unknown> = {},
+) {
+  if (typeof window === 'undefined') return;
+  const message = `[api] ${phase} ${method} ${apiBase}${path}`;
+  if (phase === 'error') console.warn(message, details);
+  else console.info(message, details);
+}
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -18,9 +30,33 @@ export class ApiError extends Error {
 }
 
 async function api<T>(path: string): Promise<T> {
-  const response = await fetch(`${apiBase}${path}`, { cache: 'no-store' });
-  if (!response.ok) throw new ApiError(response.status);
-  return response.json() as Promise<T>;
+  const startedAt = performance.now();
+  logRequest('start', 'GET', path);
+  try {
+    const response = await fetch(`${apiBase}${path}`, {
+      cache: 'no-store',
+    });
+    const durationMs = Math.round(performance.now() - startedAt);
+    if (!response.ok) {
+      logRequest('error', 'GET', path, {
+        status: response.status,
+        durationMs,
+      });
+      throw new ApiError(response.status);
+    }
+    logRequest('success', 'GET', path, {
+      status: response.status,
+      durationMs,
+    });
+    return response.json() as Promise<T>;
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    logRequest('error', 'GET', path, {
+      durationMs: Math.round(performance.now() - startedAt),
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 export const getCategories = () => api<{ data: Category[] }>('/categories');
 export const getFeaturedProducts = () =>
@@ -31,24 +67,46 @@ export const getProduct = (slug: string) =>
   api<{ data: Product }>(`/products/${encodeURIComponent(slug)}`);
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}) {
+  const method = init.method ?? 'GET';
+  const startedAt = performance.now();
   const headers = new Headers(init.headers);
   if (init.body) headers.set('content-type', 'application/json');
-  const response = await fetch(`${apiBase}${path}`, {
-    ...init,
-    headers,
-    credentials: 'include',
-    cache: 'no-store',
-  });
-  const body = (await response.json().catch(() => null)) as {
-    data?: T;
-    error?: { message?: string };
-  } | null;
-  if (!response.ok)
-    throw new ApiError(
-      response.status,
-      body?.error?.message ?? `The store API returned ${response.status}.`,
-    );
-  return body as { data: T };
+  logRequest('start', method, path, { credentials: 'include' });
+  try {
+    const response = await fetch(`${apiBase}${path}`, {
+      ...init,
+      headers,
+      credentials: 'include',
+      cache: 'no-store',
+    });
+    const body = (await response.json().catch(() => null)) as {
+      data?: T;
+      error?: { message?: string };
+    } | null;
+    const durationMs = Math.round(performance.now() - startedAt);
+    if (!response.ok) {
+      const message =
+        body?.error?.message ?? `The store API returned ${response.status}.`;
+      logRequest('error', method, path, {
+        status: response.status,
+        durationMs,
+        message,
+      });
+      throw new ApiError(response.status, message);
+    }
+    logRequest('success', method, path, {
+      status: response.status,
+      durationMs,
+    });
+    return body as { data: T };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    logRequest('error', method, path, {
+      durationMs: Math.round(performance.now() - startedAt),
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 export const signIn = (email: string, password: string) =>

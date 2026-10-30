@@ -1,18 +1,37 @@
-import type { Metadata } from 'next';
+'use client';
+
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { formatPrice } from '@/lib/store-config';
-import { serverApi } from '@/lib/server-api';
+import { getCurrentAccount, getOrders } from '@/lib/api';
 import type { Account, StoreOrder } from '@/lib/types';
 
-export const metadata: Metadata = { title: 'My account' };
+export default function AccountPage() {
+  const [account, setAccount] = useState<Account | null>(null);
+  const [orders, setOrders] = useState<StoreOrder[] | null>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
 
-export default async function AccountPage() {
-  const [account, orders] = await Promise.all([
-    serverApi<{ user: Account }>('/auth/me'),
-    serverApi<StoreOrder[]>('/orders'),
-  ]);
-  if (!account || !orders) redirect('/signin?next=%2Faccount');
+  useEffect(() => {
+    Promise.all([getCurrentAccount(), getOrders()])
+      .then(([accountResponse, ordersResponse]) => {
+        setAccount(accountResponse.data.user);
+        setOrders(ordersResponse.data);
+      })
+      .catch(() => setUnauthorized(true));
+  }, []);
+
+  if (unauthorized) {
+    if (typeof window !== 'undefined')
+      window.location.replace('/signin?next=%2Faccount');
+    return null;
+  }
+  if (!account || !orders) {
+    return (
+      <section className="page-wrap min-h-[65vh] py-16 text-center text-sm text-ink/60">
+        Loading your account…
+      </section>
+    );
+  }
 
   return (
     <section className="page-wrap min-h-[65vh] py-10 sm:py-14">
@@ -20,9 +39,9 @@ export default async function AccountPage() {
         Your Glow account
       </p>
       <h1 className="font-display mt-2 text-4xl sm:text-5xl">
-        Hello, {account.user.name.split(' ')[0]}.
+        Hello, {account.name.split(' ')[0]}.
       </h1>
-      <p className="mt-3 text-sm text-ink/55">{account.user.email}</p>
+      <p className="mt-3 text-sm text-ink/55">{account.email}</p>
       <div className="mt-10 flex items-center justify-between gap-4">
         <h2 className="font-display text-3xl">Your orders</h2>
         <Link

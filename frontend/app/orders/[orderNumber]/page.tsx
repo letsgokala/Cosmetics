@@ -1,33 +1,44 @@
-import type { Metadata } from 'next';
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound, redirect } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { OrderActions } from '@/components/order-actions';
+import { getOrder } from '@/lib/api';
 import { formatPrice } from '@/lib/store-config';
-import { serverApi } from '@/lib/server-api';
 import type { StoreOrder } from '@/lib/types';
 
-export const metadata: Metadata = { title: 'Order details' };
-type Props = {
-  params: Promise<{ orderNumber: string }>;
-  searchParams: Promise<{ placed?: string }>;
-};
+export default function OrderPage() {
+  const { orderNumber } = useParams<{ orderNumber: string }>();
+  const query = useSearchParams();
+  const router = useRouter();
+  const [order, setOrder] = useState<StoreOrder | null>(null);
+  const [loaded, setLoaded] = useState(false);
 
-export default async function OrderPage({ params, searchParams }: Props) {
-  const [{ orderNumber }, query] = await Promise.all([params, searchParams]);
-  const order = await serverApi<StoreOrder>(
-    `/orders/${encodeURIComponent(orderNumber)}`,
-  );
-  if (!order) {
-    const account = await serverApi<{ user: { id: string } }>('/auth/me');
-    if (!account)
-      redirect(`/signin?next=${encodeURIComponent(`/orders/${orderNumber}`)}`);
-    notFound();
+  useEffect(() => {
+    if (!orderNumber) return;
+    getOrder(orderNumber)
+      .then(({ data }) => setOrder(data))
+      .catch(() =>
+        router.replace(
+          `/signin?next=${encodeURIComponent(`/orders/${orderNumber}`)}`,
+        ),
+      )
+      .finally(() => setLoaded(true));
+  }, [orderNumber, router]);
+
+  if (!loaded || !order) {
+    return (
+      <section className="page-wrap min-h-[65vh] py-16 text-center text-sm text-ink/60">
+        Loading your order…
+      </section>
+    );
   }
 
   return (
     <section className="page-wrap min-h-[65vh] py-10 sm:py-14">
-      {query.placed === '1' && (
+      {query.get('placed') === '1' && (
         <div
           role="status"
           className="mb-8 bg-[#e9efe8] p-5 text-sm text-[#315b3b]"

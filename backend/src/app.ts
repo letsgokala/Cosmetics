@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/errors.js';
+import { requestLogger } from './middleware/request-logger.js';
 import { productsRouter } from './products/routes.js';
 import { HttpError } from './middleware/errors.js';
 import { authRouter } from './auth/routes.js';
@@ -21,6 +22,7 @@ openApiDocument.servers = [
 
 export const app = express();
 app.disable('x-powered-by');
+app.use(requestLogger);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(
   cors({

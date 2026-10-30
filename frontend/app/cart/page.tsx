@@ -1,14 +1,32 @@
-import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
 import { CartView } from '@/components/cart-view';
-import { serverApi } from '@/lib/server-api';
+import { getCart } from '@/lib/api';
 import type { Cart } from '@/lib/types';
 
-export const metadata: Metadata = { title: 'Your bag' };
+export default function CartPage() {
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [unauthorized, setUnauthorized] = useState(false);
 
-export default async function CartPage() {
-  const cart = await serverApi<Cart>('/cart');
-  if (!cart) redirect('/signin?next=%2Fcart');
+  useEffect(() => {
+    getCart()
+      .then(({ data }) => setCart(data))
+      .catch(() => setUnauthorized(true));
+  }, []);
+
+  if (unauthorized) {
+    if (typeof window !== 'undefined') window.location.replace('/signin?next=%2Fcart');
+    return null;
+  }
+  if (!cart) {
+    return (
+      <section className="page-wrap min-h-[65vh] py-16 text-center text-sm text-ink/60">
+        Loading your bag…
+      </section>
+    );
+  }
+
   return (
     <section className="page-wrap min-h-[65vh] py-10 sm:py-14">
       <p className="text-[10px] uppercase tracking-[.2em] text-rose">

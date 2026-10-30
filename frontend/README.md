@@ -33,3 +33,8 @@ docker run --rm -p 3000:3000 glow-frontend
 ```
 
 The API URL is embedded in the frontend bundle during `docker build`; provide the public backend URL as the build argument when deploying.
+
+When using the full-stack Compose setup from `../backend`, set
+`NEXT_PUBLIC_API_BASE_URL` before running `docker compose up --build`. It must
+be the URL that a user's browser can reach, not the Docker service name
+`api` and not `localhost` in a deployed environment.

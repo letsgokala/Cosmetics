@@ -4,7 +4,7 @@ import { env } from './config/env.js';
 
 const adapter = new PrismaPg({
   connectionString:
-    env.DATABASE_URL ?? 'postgresql://localhost:5432/glow_cosmetics',
+    env.DATABASE_URL ?? 'postgresql://localhost:5433/glow_cosmetics',
 });
 
 export const prisma = new PrismaClient({ adapter });

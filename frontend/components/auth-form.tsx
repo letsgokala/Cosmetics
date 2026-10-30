@@ -25,9 +25,11 @@ export function AuthForm({
     const name = String(formData.get('name') ?? '').trim();
     const email = String(formData.get('email') ?? '').trim();
     const password = String(formData.get('password') ?? '');
+    console.info(`[auth] submit mode=${mode} email=${email}`);
     try {
       if (isSignUp) await signUp(name, email, password);
       else await signIn(email, password);
+      console.info(`[auth] success mode=${mode}`);
 
       let destination = nextPath;
       const pendingItem = sessionStorage.getItem('glow_pending_cart_item');
@@ -52,9 +54,11 @@ export function AuthForm({
         }
       }
       window.dispatchEvent(new Event('glow-auth-changed'));
-      router.push(destination);
+      console.info(`[auth] redirect destination=${destination}`);
+      router.replace(destination);
       router.refresh();
     } catch (requestError) {
+      console.warn('[auth] failed', requestError);
       setError(
         requestError instanceof Error
           ? requestError.message
