@@ -19,6 +19,12 @@ describe('API', () => {
     expect(response.body.data.status).toBe('ok');
   });
 
+  it('protects owner dashboard routes', async () => {
+    const response = await request(app).get('/api/owner/dashboard');
+    expect(response.status).toBe(401);
+    expect(response.body.error.code).toBe('UNAUTHENTICATED');
+  });
+
   it('serves the health endpoint through the AletCloud backend prefix', async () => {
     const response = await request(app).get('/backend/api/health');
     expect(response.status).toBe(200);

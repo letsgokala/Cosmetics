@@ -7,7 +7,7 @@ const orderInclude = {
   items: { orderBy: { createdAt: 'asc' as const } },
 };
 
-function serializeOrder<
+export function serializeOrder<
   T extends {
     subtotal: Prisma.Decimal;
     deliveryFee: Prisma.Decimal;

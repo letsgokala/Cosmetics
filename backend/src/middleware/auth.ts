@@ -17,3 +17,11 @@ export const requireUser: RequestHandler = (req, _res, next) => {
   req.user = user;
   next();
 };
+
+export const requireOwner: RequestHandler = (req, _res, next) => {
+  if (req.user?.role !== 'owner') {
+    next(new HttpError(403, 'OWNER_REQUIRED', 'Owner access is required.'));
+    return;
+  }
+  next();
+};

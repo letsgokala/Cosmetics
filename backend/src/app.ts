@@ -13,6 +13,7 @@ import swaggerUi from 'swagger-ui-express';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { normalizeBackendPrefix } from './middleware/backend-prefix.js';
+import { ownerRouter } from './owner/routes.js';
 
 const openApiDocument = JSON.parse(
   readFileSync(resolve(process.cwd(), 'openapi.json'), 'utf8'),
@@ -67,6 +68,7 @@ app.get('/api/health', (_req, res) => res.json({ data: { status: 'ok' } }));
 app.use('/api/auth', authRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/owner', ownerRouter);
 app.use('/api', productsRouter);
 app.use((_req, _res, next) =>
   next(new HttpError(404, 'NOT_FOUND', 'Route not found.')),

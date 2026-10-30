@@ -95,6 +95,15 @@ export function Header() {
           </Link>
           {account ? (
             <>
+              {account.role === 'owner' && (
+                <Link
+                  href="/owner"
+                  className={navClass(pathname.startsWith('/owner'))}
+                  aria-current={pathname.startsWith('/owner') ? 'page' : undefined}
+                >
+                  Owner
+                </Link>
+              )}
               <Link
                 href="/account"
                 className={navClass(

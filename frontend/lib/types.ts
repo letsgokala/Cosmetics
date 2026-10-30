@@ -20,7 +20,12 @@ export type ProductResponse = {
   data: Product[];
   meta: { page: number; limit: number; total: number; totalPages: number };
 };
-export type Account = { id: string; name: string; email: string };
+export type Account = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'customer' | 'owner';
+};
 export type CartItem = {
   productId: string;
   name: string;
@@ -57,4 +62,10 @@ export type StoreOrder = {
     quantity: number;
     lineTotal: string;
   }>;
+};
+export type OwnerDashboard = {
+  orders: Record<string, number>;
+  activeProducts: number;
+  lowStockProducts: number;
+  pendingCash: { orderCount: number; total: string };
 };

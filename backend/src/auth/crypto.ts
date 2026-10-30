@@ -4,7 +4,12 @@ import { env } from '../config/env.js';
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 const COOKIE_NAME = 'glow_session';
 
-export type SessionUser = { id: string; name: string; email: string };
+export type SessionUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'customer' | 'owner';
+};
 
 async function derive(password: string, salt: string) {
   return new Promise<Buffer>((resolve, reject) => {
@@ -62,10 +67,21 @@ export function readSession(token: string): SessionUser | null {
     const session = JSON.parse(
       Buffer.from(payload, 'base64url').toString(),
     ) as SessionUser & { exp?: number };
-    if (!session.id || !session.email || !session.name) return null;
+    if (
+      !session.id ||
+      !session.email ||
+      !session.name ||
+      !['customer', 'owner'].includes(session.role)
+    )
+      return null;
     if (!session.exp || session.exp <= Math.floor(Date.now() / 1000))
       return null;
-    return { id: session.id, name: session.name, email: session.email };
+    return {
+      id: session.id,
+      name: session.name,
+      email: session.email,
+      role: session.role,
+    };
   } catch {
     return null;
   }

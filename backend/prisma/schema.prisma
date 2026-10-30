@@ -24,6 +24,11 @@ enum PaymentStatus {
   pending
 }
 
+enum UserRole {
+  customer
+  owner
+}
+
 model Category {
   id          String    @id @default(cuid())
   name        String
@@ -41,6 +46,7 @@ model User {
   name         String
   email        String    @unique
   passwordHash String
+  role         UserRole     @default(customer)
   cart         Cart?
   orders       Order[]
   createdAt    DateTime  @default(now())

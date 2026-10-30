@@ -30,10 +30,16 @@ const signInSchema = z.object({
     .transform((value) => value.toLowerCase()),
   password: z.string().min(8).max(128),
 });
-const publicUser = (user: { id: string; name: string; email: string }) => ({
+const publicUser = (user: {
+  id: string;
+  name: string;
+  email: string;
+  role: 'customer' | 'owner';
+}) => ({
   id: user.id,
   name: user.name,
   email: user.email,
+  role: user.role,
 });
 
 export const authRouter = Router();
@@ -50,7 +56,7 @@ authRouter.post('/signup', async (req, res) => {
         passwordHash,
         cart: { create: {} },
       },
-      select: { id: true, name: true, email: true },
+      select: { id: true, name: true, email: true, role: true },
     });
     res.cookie(COOKIE_NAME, createSession(user), sessionCookieOptions());
     res.status(201).json({ data: { user } });

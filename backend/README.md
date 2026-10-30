@@ -71,6 +71,19 @@ Open <http://localhost:4000/api/docs>. The raw OpenAPI document is at <http://lo
 
 The spec is maintained in [`openapi.json`](./openapi.json). `src/app.ts` loads that document, sets its server URL from `PUBLIC_API_URL`, exposes the JSON endpoint, and mounts `swagger-ui-express` at `/api/docs`. The cookie authentication scheme is named `sessionCookie` and documents the `glow_session` HTTP-only cookie.
 
+## Owner access
+
+Create or update the owner account using environment variables and the one-time
+bootstrap command:
+
+```sh
+OWNER_NAME="Sahle Owner" OWNER_EMAIL="owner@example.com" \
+OWNER_PASSWORD="use-a-long-unique-password" npm run owner:create
+```
+
+Owner endpoints are protected by the `owner` role and are available under
+`/api/owner`. Never make the first customer account an owner automatically.
+
 To try a protected operation in Swagger, use `POST /auth/signup` or `POST /auth/signin` first. The browser stores the session cookie; Swagger UI sends it with same-origin requests. Requests from the UI are restricted by `CORS_ORIGIN` and the API's origin check.
 
 For a deployed backend, set `PUBLIC_API_URL` to the externally reachable API base URL, including `/api` (for example, `https://your-api.example/api`). Then `/api/docs` uses that host in its server selector. Keep the session secret and database credentials private.

@@ -1,5 +1,5 @@
 import type { Category, Product, ProductResponse } from './types';
-import type { Account, Cart, StoreOrder } from './types';
+import type { Account, Cart, OwnerDashboard, StoreOrder } from './types';
 
 const productionApiTarget =
   process.env.API_PROXY_TARGET ??
@@ -163,3 +163,17 @@ export const cancelOrder = (orderNumber: string) =>
   apiRequest<StoreOrder>(`/orders/${encodeURIComponent(orderNumber)}/cancel`, {
     method: 'POST',
   });
+export const getOwnerDashboard = () =>
+  apiRequest<OwnerDashboard>('/owner/dashboard');
+export const getOwnerOrders = (status?: string) =>
+  apiRequest<StoreOrder[]>(
+    `/owner/orders${status ? `?status=${encodeURIComponent(status)}` : ''}`,
+  );
+export const updateOwnerOrderStatus = (
+  orderNumber: string,
+  status: string,
+) =>
+  apiRequest<StoreOrder>(
+    `/owner/orders/${encodeURIComponent(orderNumber)}/status`,
+    { method: 'PATCH', body: JSON.stringify({ status }) },
+  );
