@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { addCartItem, signIn, signUp } from '@/lib/api';
 
@@ -12,7 +11,6 @@ export function AuthForm({
   mode: 'signin' | 'signup';
   nextPath: string;
 }) {
-  const router = useRouter();
   const [error, setError] = useState('');
   const [pending, setPending] = useState(false);
   const isSignUp = mode === 'signup';
@@ -55,8 +53,7 @@ export function AuthForm({
       }
       window.dispatchEvent(new Event('glow-auth-changed'));
       console.info(`[auth] redirect destination=${destination}`);
-      router.replace(destination);
-      router.refresh();
+      window.location.replace(destination);
     } catch (requestError) {
       console.warn('[auth] failed', requestError);
       setError(

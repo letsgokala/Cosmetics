@@ -14,10 +14,15 @@ export function Header() {
     try {
       const { data } = await getCurrentAccount();
       setAccount(data.user);
+    } catch {
+      setAccount(null);
+      setCartCount(0);
+      return;
+    }
+    try {
       const cart = await getCart();
       setCartCount(cart.data.itemCount);
     } catch {
-      setAccount(null);
       setCartCount(0);
     }
   }, []);
