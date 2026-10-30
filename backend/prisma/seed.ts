@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 
@@ -37,7 +38,7 @@ const products = [
     1450,
     18,
     true,
-    'dew-drop-serum',
+    1,
   ],
   [
     'Cloud Nine Face Cream',
@@ -47,7 +48,7 @@ const products = [
     1850,
     12,
     true,
-    'cloud-nine-cream',
+    2,
   ],
   [
     'Sun Veil SPF 50',
@@ -57,7 +58,7 @@ const products = [
     1250,
     20,
     true,
-    'sun-veil-spf',
+    3,
   ],
   [
     'Soft Focus Lip Tint',
@@ -67,7 +68,7 @@ const products = [
     790,
     30,
     true,
-    'soft-focus-lip-tint',
+    4,
   ],
   [
     'Velvet Glow Blush',
@@ -77,7 +78,7 @@ const products = [
     980,
     14,
     false,
-    'velvet-glow-blush',
+    5,
   ],
   [
     'Everyday Brow Gel',
@@ -87,7 +88,7 @@ const products = [
     650,
     25,
     false,
-    'everyday-brow-gel',
+    6,
   ],
   [
     'Cocoa Butter Hair Mask',
@@ -97,7 +98,7 @@ const products = [
     1600,
     9,
     true,
-    'cocoa-butter-hair-mask',
+    7,
   ],
   [
     'Silk Finish Hair Oil',
@@ -107,7 +108,7 @@ const products = [
     1150,
     16,
     false,
-    'silk-finish-hair-oil',
+    8,
   ],
   [
     'Morning Bloom Eau de Parfum',
@@ -117,7 +118,7 @@ const products = [
     3200,
     7,
     true,
-    'morning-bloom-fragrance',
+    9,
   ],
   [
     'Amber Evening Mist',
@@ -127,7 +128,7 @@ const products = [
     2100,
     0,
     false,
-    'amber-evening-mist',
+    10,
   ],
 ] as const;
 
@@ -154,7 +155,7 @@ async function main() {
     });
     await prisma.product.upsert({
       where: { slug },
-      update: {},
+      update: { imageUrl: `/products/photos/product-${image}.jpg` },
       create: {
         name,
         slug,
@@ -163,7 +164,7 @@ async function main() {
         price,
         stock,
         featured,
-        imageUrl: `/products/${image}.svg`,
+        imageUrl: `/products/photos/product-${image}.jpg`,
       },
     });
   }
